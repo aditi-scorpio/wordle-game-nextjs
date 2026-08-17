@@ -1,26 +1,205 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  font-family: system-ui, sans-serif;
 }
+
+.game {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 20px;
+}
+
+.game h1{
+  margin: 0 0 25px;
+  font-size: 2rem;
+  letter-spacing: 2px;
+}
+
+.board {
+  display: grid;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.row {
+  display: flex;
+  gap: 6px;
+}
+
+.tile {
+  width: 52px;
+  height: 52px;
+  border: 2px solid #d3d6da;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  transition: transform 0.15s ease;
+  perspective: 1000px;
+}
+
+.tile.submitted {
+  animation: flip 0.8s ease-in-out both;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+.tile:not(:empty):not(.submitted) {
+  animation: pop 0.08s ease-in-out;
+}
+
+@keyframes flip {
+  0% {
+    transform: rotateX(0deg);
+  }
+  50% {
+    transform: rotateX(90deg);
+  }
+  100% {
+    transform: rotateX(0deg);
+  }
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(0.8);
+  }
+  80% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.tile.submitted:nth-child(1) {
+  animation-delay: 0ms;
+}
+
+.tile.submitted:nth-child(2) {
+  animation-delay: 100ms;
+}
+
+.tile.submitted:nth-child(3) {
+  animation-delay: 200ms;
+}
+
+.tile.submitted:nth-child(4) {
+  animation-delay: 300ms;
+}
+
+.tile.submitted:nth-child(5) {
+  animation-delay: 400ms;
+}
+
+.keyboard {
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(500px, 95vw);
+}
+
+.keyboard-row {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.key {
+  height: 58px;
+  min-width: 40px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 4px;
+  background: #d3d6da;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    transform 0.08s ease,
+    opacity 0.01s ease,
+}
+
+.key:active {
+  transform: scale(0.92);
+}
+
+.key.wide {
+  min-width: 65px;
+}
+
+.key.correct, .tile.correct {
+  background-color: #6aaa64;
+  border-color: #6aaa64;
+  color: white;
+}
+
+.key.present, .tile.present {
+  background-color: #c9b458;
+  border-color: #c9b458;
+  color: white;
+}
+
+.key.absent, .tile.absent {
+  background-color: #787c7e;
+  border-color: #787c7e;
+  color: white;
+}
+
+.game-message {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.game-message button {
+  padding: 10px 20px;
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+@media (max-width: 500px){
+  .tile {
+    width: 48px;
+    height: 48px;
+    font-size: 1.5rem;
+  }
+
+  .row {
+    gap: 5px;
+  }
+
+  .key {
+    height: 52px;
+    min-width: 32px;
+    padding: 0 7px;
+  }
+
+  .key.wide {
+    min-width: 58px;
+  }
+
+  .keyboard{
+    width: 100%;
+    padding: 0 8px;
+  }
+}
+

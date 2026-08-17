@@ -1,69 +1,131 @@
-import Image from "next/image";
+"use client";
+
+import Board from "./components/Board";
+import { evaluateGuess, LetterStatus } from "../lib/game";
+import Keyboard from "./components/Keyboard";
+import { useEffect, useState } from "react";
+
+const MAX_GUESSES = 6;
+const WORD_LENGTH = 5;
+
+const ANSWER = "APPLE";
+
+type GuessResult = {
+  word: string;
+  status: LetterStatus[];
+}
+
+
 
 export default function Home() {
+
+  const [currentGuess, setCurrentGuess] = useState("");
+  const [guesses, setGuesses] = useState<GuessResult[]>([]);
+
+  const [gameWon, setGameWon] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
+
+  const letterStatuses = guesses.reduce((statuses, guess) => {
+    guess.word.split("").forEach((letter, index) => {
+      const newStatus = guess.status[index];
+      const currentStatus = statuses[letter];
+      if(newStatus === "correct" 
+        || (newStatus === "present" && currentStatus !== "correct")
+        || (!currentStatus && newStatus === "absent")) 
+      {
+        statuses[letter] = newStatus;
+      }
+    })
+    return statuses;
+  },
+  {} as Record<string, LetterStatus>
+)
+
+  useEffect(() => {
+    
+    function handleKeyDown(event: KeyboardEvent) {
+      handleKeyboardPress(event.key);
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [currentGuess, guesses])
+
+  function handleKeyboardPress(key: string) {
+    key = key.toUpperCase();
+    if(gameWon || gameOver) {
+      return;
+    }
+    if(key === "ENTER") {
+      if(currentGuess.length !== WORD_LENGTH) {
+        return;
+      }
+      if(guesses.length >= MAX_GUESSES) {
+        return;
+      }
+
+      const status = evaluateGuess(currentGuess, ANSWER);
+      const newGuess = { word: currentGuess, status };
+      setGuesses((prev) => [...prev, newGuess]);
+      setCurrentGuess("");
+      if(currentGuess === ANSWER) {
+        setGameWon(true);
+        return;
+      }
+      if(guesses.length + 1 === MAX_GUESSES) {
+        setGameOver(true);
+      }
+      return;
+    }
+
+    if(key === "BACKSPACE") {
+      setCurrentGuess((prev) => prev.slice(0, -1));
+      return;
+    }
+
+    if(/^[A-Z]$/.test(key)) {
+      setCurrentGuess((prev) => {
+        if(prev.length >= WORD_LENGTH) {
+          return prev;
+        }
+        return prev + key;
+      })
+    }
+  }
+
+  function restartGame() {
+    setCurrentGuess("");
+    setGuesses([]);
+    setGameWon(false);
+    setGameOver(false);
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+    <main className="game">
+      <h1>WORDLE</h1>
+      <section className="board">
+        <Board currentGuess={currentGuess} guesses={guesses} maxGuesses={MAX_GUESSES} />
+      </section>
+      <section className="keyboard">
+        <Keyboard onKeyPress={handleKeyboardPress} letterStatuses={letterStatuses} />
+      </section>
+      {
+        (gameWon || gameOver) && (
+          <div className="game-message">
+            {
+              gameWon ? (
+                <h2>Congratulations! You guessed the word!</h2>
+              ) : (
+                <h2>Game Over! The correct word was {ANSWER}.</h2>
+              )
+            }
+            <button onClick={restartGame}>Play Again</button>
+          </div>
+        )
+      }
+    </main>
+  )
 }
