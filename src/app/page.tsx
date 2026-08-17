@@ -5,10 +5,12 @@ import { evaluateGuess, LetterStatus } from "../lib/game";
 import Keyboard from "./components/Keyboard";
 import { useEffect, useState } from "react";
 
+import { answers } from "../data/answers";
+import { validWords } from "../data/validWords";
+
 const MAX_GUESSES = 6;
 const WORD_LENGTH = 5;
 
-const ANSWER = "APPLE";
 
 type GuessResult = {
   word: string;
@@ -22,8 +24,14 @@ export default function Home() {
   const [currentGuess, setCurrentGuess] = useState("");
   const [guesses, setGuesses] = useState<GuessResult[]>([]);
 
+  const [answer, setAnswer] = useState(() => {
+    return answers[Math.floor(Math.random() * answers.length)];
+  })
+
   const [gameWon, setGameWon] = useState(false);
   const [gameOver, setGameOver] = useState(false);
+
+  const [message, setMessage] = useState("");
 
   const letterStatuses = guesses.reduce((statuses, guess) => {
     guess.word.split("").forEach((letter, index) => {
@@ -63,15 +71,22 @@ export default function Home() {
       if(currentGuess.length !== WORD_LENGTH) {
         return;
       }
-      if(guesses.length >= MAX_GUESSES) {
-        return;
-      }
+    if(guesses.length >= MAX_GUESSES) {
+      return;
+    }
+    
+    if(!validWords.has(currentGuess)) {
+      setMessage("Not a valid word");
+      setTimeout(() => setMessage(""), 2000);
+      return;
+    }
 
-      const status = evaluateGuess(currentGuess, ANSWER);
+
+      const status = evaluateGuess(currentGuess, answer);
       const newGuess = { word: currentGuess, status };
       setGuesses((prev) => [...prev, newGuess]);
       setCurrentGuess("");
-      if(currentGuess === ANSWER) {
+      if(currentGuess === answer) {
         setGameWon(true);
         return;
       }
@@ -101,11 +116,19 @@ export default function Home() {
     setGuesses([]);
     setGameWon(false);
     setGameOver(false);
+    setAnswer(answers[Math.floor(Math.random() * answers.length)]);
   }
 
   return (
     <main className="game">
       <h1>WORDLE</h1>
+      {
+        message && (
+          <div className="game-message">
+            {message}
+          </div>
+        )
+      }
       <section className="board">
         <Board currentGuess={currentGuess} guesses={guesses} maxGuesses={MAX_GUESSES} />
       </section>
@@ -119,7 +142,7 @@ export default function Home() {
               gameWon ? (
                 <h2>Congratulations! You guessed the word!</h2>
               ) : (
-                <h2>Game Over! The correct word was {ANSWER}.</h2>
+                <h2>Game Over! The correct word was {answer}.</h2>
               )
             }
             <button onClick={restartGame}>Play Again</button>
