@@ -24,7 +24,10 @@ export default function Keyboard({ onKeyPress, letterStatuses }: KeyboardProps) 
                                     <button key={key} className={`key ${status || ''}
                                      ${key === 'ENTER' || key === 'BACKSPACE' ? 'wide' : ''}
                                     `}
-                                     onClick={() => onKeyPress(key)}>
+                                     onClick={(event) => {
+                                        event.currentTarget.blur();
+                                        onKeyPress(key);
+                                     }}>
                                         {key === 'Backspace' ? '⌫' : key}
                                     </button>
                                 )

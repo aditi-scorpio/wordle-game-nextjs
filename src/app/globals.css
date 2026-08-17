@@ -4,65 +4,95 @@
   box-sizing: border-box;
 }
 
-body {
+html, body {
   margin: 0;
+  padding: 0;
+  overflow-x: hidden;
   font-family: system-ui, sans-serif;
 }
 
 .game {
-  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 20px;
+  padding: 8px 12px;
 }
 
 .game h1{
-  margin: 0 0 25px;
-  font-size: 2rem;
+  width: 100%;
+  max-width: 500px;
+  margin: 0;
+  padding: 8px 0;
+  text-align: center;
+  font-size: 1.8rem;
+  font-weight: 800;
   letter-spacing: 2px;
+  border-bottom: 2px solid #d3d6da;
 }
 
 .board {
   display: grid;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
+  margin-top: 18px;
 }
 
 .row {
   display: flex;
-  gap: 6px;
+  gap: 5px;
 }
 
 .tile {
-  width: 52px;
-  height: 52px;
+  width: 54px;
+  height: 54px;
   border: 2px solid #d3d6da;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tile-face {
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.8rem;
   font-weight: 700;
+  background: white;
+  color: #1a1a1a;
   text-transform: uppercase;
-  transition: transform 0.15s ease;
-  perspective: 1000px;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
 }
 
 .tile.submitted {
-  animation: flip 0.8s ease-in-out both;
-  transform-style: preserve-3d;
-  backface-visibility: hidden;
+  animation: flip 1s ease-in-out both;
+  
+}
+
+.tile.submitted .tile-face {
+  animation: reveal-color 1s ease-in-out both;
 }
 
 .tile:not(:empty):not(.submitted) {
   animation: pop 0.08s ease-in-out;
 }
 
+.shake {
+  animation: shake 0.4s ease-in-out;
+}
+
 @keyframes flip {
   0% {
     transform: rotateX(0deg);
   }
-  50% {
+  45% {
+    transform: rotateX(90deg);
+  }
+  55% {
     transform: rotateX(90deg);
   }
   100% {
@@ -72,13 +102,42 @@ body {
 
 @keyframes pop {
   0% {
-    transform: scale(0.8);
+    transform: scale(0.85);
   }
   80% {
-    transform: scale(1.05);
+    transform: scale(1.08);
   }
   100% {
     transform: scale(1);
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-8px);
+  }
+  40% {
+    transform: translateX(8px);;
+  }
+  60% {
+    transform: translateX(-6px);;
+  }
+  80% {
+    transform: translateX(6px);;
+  }
+}
+
+@keyframes reveal-color {
+  0%, 44% {
+    background: white;
+    color: #1a1a1b;
+  }
+  45%, 100% {
+    background: var(--tile-color);
+    color: white;
   }
 }
 
@@ -103,23 +162,23 @@ body {
 }
 
 .keyboard {
-  margin-top: 30px;
+  margin-top: 20px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  width: min(500px, 95vw);
+  gap: 7px;
+  width: min(500px, 100%);
 }
 
 .keyboard-row {
   display: flex;
   justify-content: center;
-  gap: 6px;
+  gap: 5px;
 }
 
 .key {
-  height: 58px;
+  height: 52px;
   min-width: 40px;
-  padding: 0 10px;
+  padding: 0 8px;
   border: none;
   border-radius: 4px;
   background: #d3d6da;
@@ -127,9 +186,7 @@ body {
   font-weight: 700;
   cursor: pointer;
   user-select: none;
-  transition:
-    transform 0.08s ease,
-    opacity 0.01s ease,
+  transition: transform 0.08s ease;
 }
 
 .key:active {
@@ -137,7 +194,7 @@ body {
 }
 
 .key.wide {
-  min-width: 65px;
+  min-width: 62px;
 }
 
 .key.correct, .tile.correct {
@@ -158,50 +215,109 @@ body {
   color: white;
 }
 
-.game-message {
-  margin-top: 20px;
+.modal-overlay {
+  position: fixed;
+  inset: 0;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 12px;
-  font-size: 20px;
-  min-height: 30px;
-  font-weight: 700;
-  margin-bottom: 10px;
+  justify-content: center;
+  background: rgba(0,0,0, 0.45);
+  z-index: 100;
 }
 
-.game-message button {
-  padding: 10px 20px;
-  cursor: pointer;
+.result-modal {
+  width: min(360px, calc(100vw - 32px));
+  padding: 28px 24px;
+  background: white;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  animation: modal-in 0.2s ease-out;
+}
+
+.result-modal h2 {
+  margin: 0 0 12px;
+  font-size: 24px;
+}
+
+.result-modal p {
+  margin: 0 0 24px;
+  color: #5f6368;
+}
+
+.result-modal button {
+  width: 100%;
+  padding: 12px 20px;
   border: none;
-  border-radius: 4px;
-  font-weight: bold;
+  border-radius: 6px;
+  background: #1a1a1b;
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.result-modal button:hover {
+  opacity: 0.85;
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @media (max-width: 500px){
+
+  .game {
+    padding: 6px 8px;
+  }
+
+  .game h1{
+    font-size: 1.5rem;
+    padding: 6px 0;
+  }
+
+  .board {
+    margin-top: 12px;
+  }
+
   .tile {
     width: 48px;
     height: 48px;
-    font-size: 1.5rem;
+    font-size: 1.45rem;
   }
 
   .row {
-    gap: 5px;
+    gap: 4px;
+  }
+
+  .keyboard {
+    margin-top: 14px;
+    padding: 0 4px;
+    width: 100%;
+  }
+
+  .keyboard-row {
+    gap: 3px
   }
 
   .key {
-    height: 52px;
-    min-width: 32px;
-    padding: 0 7px;
+    height: 48px;
+    min-width: 29px;
+    padding: 0 5px;
+    font-size: 0.72rem;
   }
 
   .key.wide {
-    min-width: 58px;
+    min-width: 54px;
   }
 
-  .keyboard{
-    width: 100%;
-    padding: 0 8px;
-  }
 }
 

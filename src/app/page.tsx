@@ -3,7 +3,7 @@
 import Board from "./components/Board";
 import { evaluateGuess, LetterStatus } from "../lib/game";
 import Keyboard from "./components/Keyboard";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 import { answers } from "../data/answers";
 import { validWords } from "../data/validWords";
@@ -32,6 +32,11 @@ export default function Home() {
   const [gameOver, setGameOver] = useState(false);
 
   const [message, setMessage] = useState("");
+
+  const [shake, setShake] = useState(false);
+
+  const [keyboardStatuses, setKeyboardStatuses] = useState<Record<string, LetterStatus>>({});
+  const keyboardTimeoutRef = useRef<ReturnType<typeof setTimeout> | null> (null);
 
   const letterStatuses = guesses.reduce((statuses, guess) => {
     guess.word.split("").forEach((letter, index) => {
@@ -76,8 +81,12 @@ export default function Home() {
     }
     
     if(!validWords.has(currentGuess)) {
+      setShake(true);
       setMessage("Not a valid word");
-      setTimeout(() => setMessage(""), 2000);
+      setTimeout(() => {
+        setShake(false),
+        setMessage("")
+      }, 600);
       return;
     }
 
@@ -86,12 +95,34 @@ export default function Home() {
       const newGuess = { word: currentGuess, status };
       setGuesses((prev) => [...prev, newGuess]);
       setCurrentGuess("");
+      keyboardTimeoutRef.current = setTimeout(() => {
+        setKeyboardStatuses((prev) => {
+          const updated = {...prev}
+
+          currentGuess.split("").forEach((letter, index) => {
+            const newStatus = status[index];
+            const currentStatus = updated[letter];
+
+            if(newStatus === 'correct' 
+              || (newStatus === 'present' && currentStatus !== 'correct')
+              || (!currentStatus && newStatus === 'absent')
+            ) {
+              updated[letter] = newStatus;
+            }
+          })
+          return updated;
+        })
+      }, 1600)
       if(currentGuess === answer) {
-        setGameWon(true);
+        setTimeout(() => {
+          setGameWon(true);
+        }, 1800)
         return;
       }
       if(guesses.length + 1 === MAX_GUESSES) {
-        setGameOver(true);
+        setTimeout(()=> {
+          setGameOver(true);
+        }, 1800)
       }
       return;
     }
@@ -112,12 +143,24 @@ export default function Home() {
   }
 
   function restartGame() {
+    if(keyboardTimeoutRef.current){
+      clearTimeout(keyboardTimeoutRef.current);
+    }
     setCurrentGuess("");
     setGuesses([]);
     setGameWon(false);
     setGameOver(false);
+    setKeyboardStatuses({});
     setAnswer(answers[Math.floor(Math.random() * answers.length)]);
   }
+
+  useEffect(() => {
+    return () => {
+      if(keyboardTimeoutRef.current) {
+        clearTimeout(keyboardTimeoutRef.current);
+      }
+    }
+  }, [])
 
   return (
     <main className="game">
@@ -130,22 +173,28 @@ export default function Home() {
         )
       }
       <section className="board">
-        <Board currentGuess={currentGuess} guesses={guesses} maxGuesses={MAX_GUESSES} />
+        <Board currentGuess={currentGuess} guesses={guesses} maxGuesses={MAX_GUESSES} shake={shake} />
       </section>
       <section className="keyboard">
-        <Keyboard onKeyPress={handleKeyboardPress} letterStatuses={letterStatuses} />
+        <Keyboard onKeyPress={handleKeyboardPress} letterStatuses={keyboardStatuses} />
       </section>
       {
         (gameWon || gameOver) && (
-          <div className="game-message">
-            {
-              gameWon ? (
-                <h2>Congratulations! You guessed the word!</h2>
-              ) : (
-                <h2>Game Over! The correct word was {answer}.</h2>
-              )
-            }
-            <button onClick={restartGame}>Play Again</button>
+          <div className="modal-overlay">
+            <div className="result-modal">
+              <h2>
+                { gameWon ? '🎉 You got it!!' : 'Game Over'}
+              </h2>
+              <p>
+                {
+                  gameWon ? `You guessed it in ${guesses.length} ${guesses.length === 1 ? 'try' : 'tries'}!` 
+                  : `The word was ${answer}`
+                }
+              </p>
+              <button onClick={restartGame}>
+                Play Again
+              </button>
+            </div>
           </div>
         )
       }

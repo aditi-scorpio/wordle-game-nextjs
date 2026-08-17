@@ -1,3 +1,4 @@
+import React from "react";
 import { LetterStatus } from "../../lib/game";
 
 type GuessResult = {
@@ -10,11 +11,12 @@ type BoardProps = {
     currentGuess: string;
     guesses: GuessResult[];
     maxGuesses: number;
+    shake: boolean;
 }
 
-export default function Board({ currentGuess, guesses, maxGuesses }: BoardProps) {
+export default function Board({ currentGuess, guesses, maxGuesses, shake}: BoardProps) {
     return (
-        <div className="board">
+        <div className={`board ${shake ? 'shake' : '' }`}>
             {Array.from({ length: maxGuesses}).map((_, rowIndex) => {
                 const guess = guesses[rowIndex];
                 const isCurrentGuessRow = rowIndex === guesses.length;
@@ -26,10 +28,18 @@ export default function Board({ currentGuess, guesses, maxGuesses }: BoardProps)
                                 const letter = rowValue[colIndex] || "";
                                 const status = guess?.status[colIndex];
                                 return (
-                                <div className={`tile ${status || ''}
-                                ${ guess ? `submitted row-${rowIndex}` : ''}
-                                `} key={colIndex}>
-                                    {letter}
+                                <div className={`tile
+                                ${ guess ? `submitted` : ''}
+                                `} key={colIndex}
+                                style={guess ? {animationDelay: `${colIndex * 150}ms`,} : undefined}
+                                >
+                                   <div className="tile-face"
+                                   style={status ? ({"--tile-color" : 
+                                    status === 'correct' ? '#6aaa64' :
+                                    status === 'present' ? '#c9b458' : '#787c7e'
+                                   } as React.CSSProperties
+                                ) : undefined }
+                                   >{letter}</div>
                                 </div>
                                 )
                             }
