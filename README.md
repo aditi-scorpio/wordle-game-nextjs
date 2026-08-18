@@ -4,8 +4,6 @@ A modern implementation of the classic **Wordle word puzzle**, built with Next.j
 
 The project focuses on client-side game state, keyboard interaction, word validation, reusable components, CSS animations, and responsive UI.
 
-> **Status:** Complete
-
 ---
 
 ## About the Game
@@ -98,3 +96,112 @@ The application separates the UI components, game logic, and word data.
                            │
                            ▼
                     Word Evaluation
+
+```
+
+## Getting Started
+
+### Prerequisites
+
+Make sure you have the following installed:
+
+- [Node.js](https://nodejs.org/)
+- npm
+
+### Clone the Repository
+
+```bash
+git clone <repository-url>
+cd wordle-game-nextjs
+```
+
+### Install Dependencies
+
+```bash
+npm install
+```
+
+### Run the Development Server
+
+Start the Next.js development server:
+
+```bash
+npm run dev
+```
+
+Open the application in your browser:
+
+**http://localhost:3000**
+
+The development server supports hot reloading, so changes made to the source code will automatically be reflected in the browser.
+
+### Build for Production
+
+Create an optimized production build:
+
+```bash
+npm run build
+```
+
+### Run the Production Build
+
+After creating the production build, start the application using:
+
+```bash
+npm start
+```
+
+The production application will be available at:
+
+**http://localhost:3000**
+
+### Available Scripts
+
+| Command | Description |
+|---|---|
+| `npm run dev` | Starts the Next.js development server |
+| `npm run build` | Creates an optimized production build |
+| `npm start` | Starts the production server |
+| `npm run lint` | Runs ESLint checks |
+
+### Project Structure
+
+```text
+src/
+├── app/
+│   ├── components/
+│   │   ├── Board.tsx
+│   │   └── Keyboard.tsx
+│   │
+│   ├── globals.css
+│   └── page.tsx
+│
+├── data/
+│   ├── answers.ts
+│   └── validWords.ts
+│
+└── lib/
+    └── game.ts
+```
+
+### Development Workflow
+
+After cloning the repository:
+
+1. Install the project dependencies.
+2. Start the development server.
+3. Open the application at `http://localhost:3000`.
+4. Make changes to the source code.
+5. Verify the application and run lint checks.
+6. Create a production build before deployment.
+
+### Verify the Project
+
+Run the following commands before committing changes:
+
+```bash
+npm run lint
+npm run build
+```
+
+Both commands should complete successfully before pushing changes to the repository.
